@@ -90,7 +90,7 @@ FROM TB_PROFESSOR;
 --    이때, 19 살에 입학하면 재수를 하지 않은 것으로 간주한다.
 SELECT STUDENT_NO, STUDENT_NAME
 FROM TB_STUDENT
-WHERE TO_CHAR(SUBSTR(ENTRANCE_DATE, 'YY')) - TO_CHAR(SUBSTR(STUDENT_SSN, 1, 2)) > 20;
+WHERE (TO_CHAR(ENTRANCE_DATE, 'YYYY') - TO_CHAR('19' || SUBSTR(STUDENT_SSN, 1, 2))) > '19';
 
 -- 6. 2020 년 크리스마스는 무슨 요일인가?
 SELECT  TO_CHAR(TO_DATE(20201225), 'DAY')
@@ -134,10 +134,11 @@ WHERE COACH_PROFESSOR_NO IS NULL;
 
 
 -- 13. 학과 별 휴학생 수를 파악하고자 한다. 학과 번호와 휴학생 수를 표시하는 SQL 문장을 작성하시오.
-SELECT DEPARTMENT_NO AS "학과코드명", COUNT(*) AS "휴학생 수"
+SELECT DEPARTMENT_NO AS "학과코드명", NVL(COUNT(*), 0) AS "휴학생 수"
 FROM TB_STUDENT
 WHERE ABSENCE_YN = 'Y'
 GROUP BY DEPARTMENT_NO
+HAVING COUNT(*)
 ORDER BY DEPARTMENT_NO;
 
 
@@ -150,7 +151,9 @@ ORDER BY DEPARTMENT_NO;
 --     어떤 SQL 문장을 사용하면 가능하겠는가?
 SELECT STUDENT_NAME AS "동일이름", COUNT(*) AS "동명인 수"
 FROM TB_STUDENT
-GROUP BY STUDENT_NAME;
+GROUP BY STUDENT_NAME
+HAVING COUNT(*) != 1
+ORDER BY 1;
 
 -- 15. 학번이 A112113 인 김고운 학생의 년도, 학기 별 평점과 년도 별 누적 평점 , 
 --     총 평점을 구하는 SQL 문을 작성하시오. 
@@ -203,6 +206,48 @@ FROM TB_GRADE
 WHERE CLASS_NO = 'C3118100';
 --GROUP BY STUDENT_NO;
 --ORDER BY 2 DESC;
+
+-- 6. 학생 번호, 학생 이름, 학과 이름을 학생 이름으로 오름차순 정렬하여 출력하는 SQL 문을 작성하시오.
+SELECT STUDENT_NO, STUDENT_NAME, DEPARTMENT_NAME
+FROM TB_STUDENT
+JOIN TB_DEPARTMENT USING (DEPARTMENT_NO)
+ORDER BY SUBSTR(STUDENT_NAME, 2);
+
+-- 7. 춘 기술대학교의 과목 이름과 과목의 학과 이름을 출력하는 SQL 문장을 작성하시오.
+SELECT CLASS_NAME, DEPARTMENT_NAME
+FROM TB_CLASS
+JOIN TB_DEPARTMENT USING (DEPARTMENT_NO)
+ORDER BY DEPARTMENT_NO;
+
+-- 8. 과목별 교수 이름을 찾으려고 한다. 과목 이름과 교수 이름을 출력하는 SQL 문을 작성하시오.
+SELECT CLASS_NAME, PROFESSOR_NAME
+FROM TB_CLASS
+JOIN TB_PROFESSOR USING (DEPARTMENT_NO)
+GROUP BY CLASS_NAME;
+
+-- 9. 8 번의 결과 중 ‘인문사회’ 계열에 속한 과목의 교수 이름을 찾으려고 한다. 
+-- 이에 해당하는 과목 이름과 교수 이름을 출력하는 SQL 문을 작성하시오.
+SELECT CLASS_NAME, PROFESSOR_NAME
+FROM TB_CLASS
+JOIN TB_PROFESSOR USING (DEPARTMENT_NO)
+JOIN TB_DEPARTMENT USING (DEPARTMENT_NO)
+WHERE CATEGORY = '인문사회';
+
+-- 10. ‘음악학과’ 학생들의 평점을 구하려고 한다. 
+--     음악학과 학생들의 "학번", "학생 이름", "전체 평점"을 출력하는 SQL 문장을 작성하시오. 
+--     (단, 평점은 소수점 1 , 자리까지만 반올림하여 표시한다.)
+SELECT STUDENT_NO AS "학번", STUDENT_NAME AS "학생 이름", ROUND(POINT, 1) AS "전체 평점"
+FROM TB_STUDENT
+JOIN TB_GRADE USING (STUDENT_NO)
+JOIN TB_DEPARTMENT USING (DEPARTMENT_NO)
+WHERE DEPARTMENT_NAME = '음악학과';
+
+
+
+
+
+
+
 
 
 

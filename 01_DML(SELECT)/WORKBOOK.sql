@@ -137,27 +137,9 @@ GROUP BY SUBSTR(TERM_NO, 1, 4)
 ORDER BY 1;
 
 -- 13. 학과 별 휴학생 수를 파악하고자 한다. 학과 번호와 휴학생 수를 표시하는 SQL 문장을 작성하시오.
-SELECT DEPARTMENT_NO AS "학과코드명", COUNT(*) AS "휴학생 수"
+SELECT DEPARTMENT_NO AS "학과코드명", COUNT(DECODE(ABSENCE_YN, 'Y', 1)) AS "휴학생 수"
 FROM TB_STUDENT
-WHERE ABSENCE_YN = 'Y'
 GROUP BY DEPARTMENT_NO
-HAVING COUNT(*)
-ORDER BY DEPARTMENT_NO;
-
-SELECT DEPARTMENT_NO AS "학과코드명", COUNT(*) AS "휴학생 수"
---DECODE(ABSENCE_YN, 'Y', 'aa', 'N', 'bb')
-FROM TB_STUDENT
---WHERE ABSENCE_YN = 'Y'
-WHERE CASE WHEN ABSENCE_YN = 'Y' THEN COUNT(*) = 1
-           ELSE COUNT(*) != 1
-           END
-GROUP BY DEPARTMENT_NO
-ORDER BY DEPARTMENT_NO;
-
-
-SELECT DEPARTMENT_NO, COUNT(*) AS "휴학생 수"
-FROM TB_STUDENT
-WHERE ABSENCE_YN = 'Y'
 ORDER BY DEPARTMENT_NO;
 
 -- 14. 춘 대학교에 다니는 동명이인(同名異人) 학생들의 이름을 찾고자 한다. 
@@ -171,17 +153,10 @@ ORDER BY 1;
 -- 15. 학번이 A112113 인 김고운 학생의 년도, 학기 별 평점과 년도 별 누적 평점 , 
 --     총 평점을 구하는 SQL 문을 작성하시오. 
 --     (단, 평점은 소수점 1 자리까지만 반올림하여 표시한다.)
-SELECT TO_CHAR(ENTRANCE_DATE, 'YYYY') AS "년도", TO_CHAR(ENTRANCE_DATE, 'DD') AS "학기"
-FROM TB_STUDENT
-WHERE STUDENT_NO = 'A112113';
-
-SELECT ROUND(AVG(POINT), 1)
+SELECT SUBSTR(TERM_NO, 1, 4) AS "년도", SUBSTR(TERM_NO, 5, 6) AS "학기", POINT AS "평점"
 FROM TB_GRADE
-WHERE STUDENT_NO = 'A112113';
-
-SELECT *
-FROM TB_GRADE
-WHERE STUDENT_NO = 'A112113';
+WHERE STUDENT_NO = 'A112113'
+GROUP BY ROLLUP (SUBSTR(TERM_NO, 1, 4));
 
 --------------------------------------------------------------------------------
 -- 1. 학생이름과 주소지를 표시하시오. 단, 출력 헤더는 "학생 이름", "주소지"로 하고,
@@ -214,11 +189,11 @@ ORDER BY PROFESSOR_SSN;
 
 -- 5. 2004 년 2 학기에 'C3118100' 과목을 수강한 학생들의 학점을 조회하려고 한다. 
 --    학점이 높은 학생부터 표시하고, 학점이 같으면 학번이 낮은 학생부터 표시하는 구문을 작성해보시오.
-SELECT STUDENT_NO, POINT
+SELECT STUDENT_NO, TO_CHAR(AVG(POINT),'9.99')
 FROM TB_GRADE
-WHERE CLASS_NO = 'C3118100';
---GROUP BY STUDENT_NO;
---ORDER BY 2 DESC;
+WHERE CLASS_NO = 'C3118100' AND SUBSTR(TERM_NO, 1) = '200402'
+GROUP BY STUDENT_NO
+ORDER BY 2 DESC, 1;
 
 -- 6. 학생 번호, 학생 이름, 학과 이름을 학생 이름으로 오름차순 정렬하여 출력하는 SQL 문을 작성하시오.
 SELECT STUDENT_NO, STUDENT_NAME, DEPARTMENT_NAME
@@ -244,16 +219,18 @@ SELECT CLASS_NAME, PROFESSOR_NAME
 FROM TB_CLASS
 JOIN TB_PROFESSOR USING (DEPARTMENT_NO)
 JOIN TB_DEPARTMENT USING (DEPARTMENT_NO)
-WHERE CATEGORY = '인문사회';
+GROUP BY CLASS_NAME
+HAVING CATEGORY = '인문사회';
 
 -- 10. ‘음악학과’ 학생들의 평점을 구하려고 한다. 
 --     음악학과 학생들의 "학번", "학생 이름", "전체 평점"을 출력하는 SQL 문장을 작성하시오. 
 --     (단, 평점은 소수점 1 , 자리까지만 반올림하여 표시한다.)
-SELECT STUDENT_NO AS "학번", STUDENT_NAME AS "학생 이름", ROUND(POINT, 1) AS "전체 평점"
+SELECT DISTINCT STUDENT_NO AS "학번", STUDENT_NAME AS "학생 이름", ROUND(POINT, 1) AS "전체 평점"
 FROM TB_STUDENT
 JOIN TB_GRADE USING (STUDENT_NO)
 JOIN TB_DEPARTMENT USING (DEPARTMENT_NO)
-WHERE DEPARTMENT_NAME = '음악학과';
+WHERE DEPARTMENT_NAME = '음악학과'
+ORDER BY 1;
 
 -- 11. 학번이 A313047 인 학생이 학교에 나오고 있지 않다. 
 --     지도 교수에게 내용을 전달하기 위한 학과 이름, 학생 이름과 지도 교수 이름이 필요하다. 
@@ -293,7 +270,7 @@ ORDER BY 1;
 SELECT *
 FROM TB_DEPARTMENT
 WHERE CATEGORY = '예체능';
-GROUP BY CATEGORY;
+
 
 -- 14. 춘 기술대학교 서반아어학과 학생들의 지도교수를 게시하고자 한다. 
 --     학생이름과 지도교수 이름을 찾고 만일 지도 교수가 없는 학생일 경우 

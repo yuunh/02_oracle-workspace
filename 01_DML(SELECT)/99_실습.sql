@@ -97,11 +97,11 @@ SELECT EMP_NAME, DEPT_CODE, SUBSTR(EMP_NO, 1, 2) || '년 ' || SUBSTR(EMP_NO, 3, 2
 FROM EMPLOYEE;
 
 --22. EMPLOYEE테이블에서 부서코드가 D5, D6, D9인 사원만 조회하되 D5면 총무부, D6면 기획부, D9면 영업부로 처리 (단, 부서코드 오름차순으로 정렬)
-SELECT CASE WHEN DEPT_CODE = 'D5' THEN '총무부'
-           WHEN DEPT_CODE = 'D6' THEN '기획부'
-           WHEN DEPT_CODE = 'D9' THEN '영업부'
-      END
-FROM EMPLOYEE
+SELECT EMP_NAME, CASE WHEN DEPT_CODE = 'D5' THEN '총무부'
+                      WHEN DEPT_CODE = 'D6' THEN '기획부'
+                      WHEN DEPT_CODE = 'D9' THEN '영업부'
+                 END
+FROM EMPLOYEE22
 WHERE DEPT_CODE IN ('D5', 'D6', 'D9')
 ORDER BY DEPT_CODE;
 

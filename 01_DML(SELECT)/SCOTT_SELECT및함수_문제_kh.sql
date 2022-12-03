@@ -57,7 +57,7 @@ FROM EMP
 WHERE MOD(EMPNO, 2) = 1;
 
 --12. EMP테이블에서 사원명, 입사일 조회 (단, 입사일은 년도와 월을 분리 추출해서 출력)
-SELECT ENAME, 
+SELECT ENAME AS "사원명", 
 EXTRACT(YEAR FROM HIREDATE) || '년' AS "입사년도", 
 EXTRACT(MONTH FROM HIREDATE) || '월' AS "입사월"
 FROM EMP;

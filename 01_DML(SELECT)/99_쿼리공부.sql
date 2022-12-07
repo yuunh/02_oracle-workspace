@@ -49,7 +49,7 @@ AND EMAIL LIKE '___$_%' ESCAPE '$' AND BONUS IS NOT NULL
 AND SUBSTR(EMP_NO, 8, 1)IN ('2', '4');
 
 --------------------------------- QUIZ 3 -----------------------------
--- [계정생성수문] CREATE USER 계정명 IDENTIFIED BY 비밀번호
+-- [계정생성구문] CREATE USER 계정명 IDENTIFIED BY 비밀번호
 
 -- 계정명 : SCOTT, 비밀번호 : TIGER 계정을 생성하고 싶다
 -- 이때 일반사용자 계정인 KH 계정에 접속해서 CREATE USE SCOTT;실행하니 문제 발생

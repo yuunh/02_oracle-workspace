@@ -73,4 +73,3 @@ AND SUBSTR(EMP_NO, 8, 1)IN ('2', '4');
 
 
 
-

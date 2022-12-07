@@ -44,10 +44,10 @@ ORDER BY 1;
 -- 그 외의 사원은 급여를 5% 인상 (LALART * 1.05)
 
 SELECT EMP_NAME, JOB_CODE, SALARY,
-DECODE(JOB_CODE, 'J7', SALARY * 1.1,
-                 'J6', SALARY * 1.15,
-                 'J5', SALARY * 1.2,
-                 SALARY * 1.05) AS "인상된 급여"
+       DECODE(JOB_CODE, 'J7', SALARY * 1.1,
+                        'J6', SALARY * 1.15,
+                        'J5', SALARY * 1.2,
+                              SALARY * 1.05) AS "인상된 급여"
 FROM EMPLOYEE;
 
 -- '21/09/28'와 같은 문자열을 가지고 '2021-09-28'로 표현해보기

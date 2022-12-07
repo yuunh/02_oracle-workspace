@@ -135,8 +135,220 @@ INTO EMP_MANAGER VALUES(EMP_ID, EMP_NAME, MANAGER_ID)
     FROM EMPLOYEE
     WHERE DEPT_CODE = 'D1';
 
+-- * 조건을 사용해서도 각 테이블에 값 INSERT 가능
+-- > 2000년도 이전 입사한 입사자들에 대한 정보 담을 테이블
+-- 테이블 구조만 베껴서 먼저 만들기
 
+CREATE TABLE EMP_OLD
+AS SELECT EMP_ID, EMP_NAME, HIRE_DATE, SALARY
+    FROM EMPLOYEE
+    WHERE 1 = 0;
+    
+CREATE TABLE EMP_NEW
+AS SELECT EMP_ID, EMP_NAME, HIRE_DATE, SALARY
+    FROM EMPLOYEE
+    WHERE 1 = 0;
 
+SELECT *
+FROM EMP_OLD; -- 2000년도 이전 입사자
 
+SELECT *
+FROM EMP_NEW; -- 2000년도 이후 입사자
 
+/*
+    [ 표현식 ]
+    INSERT ALL
+    WHEN 조건1 THEN
+        INTO 테이블명1 VALUES(컬럼명, 컬럼명, ....)
+    WHEN 조건2 THEN
+        INTO 테이블명2 VALUES(컬럼명, 컬럼명, ....)
+    서브쿼리;
+*/
+
+INSERT ALL
+WHEN HIRE_DATE < '2000/01/01' THEN
+    INTO EMP_OLD VALUES(EMP_ID, EMP_NAME, HIRE_DATE, SALARY)
+WHEN HIRE_DATE >= '2000/01/01' THEN
+    INTO EMP_NEW VALUES(EMP_ID, EMP_NAME, HIRE_DATE, SALARY)
+SELECT EMP_ID, EMP_NAME, HIRE_DATE, SALARY
+FROM EMPLOYEE;
+
+SELECT *
+FROM EMP_OLD; 
+
+SELECT *
+FROM EMP_NEW;
+
+--------------------------------------------------------------------------------
+/*
+    3. UPDATE
+       테이블에 기록되어있는 기존의 데이터를 수정하는 구문
+       
+       [ 표현식 ]
+       UPDATE 테이블명
+       SET 컬럼명 = 바꿀값,
+           컬럼명 = 바꿀값,
+           컬럼명 = 바꿀값,
+                        -- > 여러 개의 컬럼값 동시 변경 가능 (,로 나열해야됨!! AND 아님)
+           [WHERE 조건]; -- > 생략하면 전체행의 모든 행의 데이터가 변경된다 => 그래서 꼭 조건 기술해야됨
+*/
+
+-- 복사본 테이블 만든 후 작업
+CREATE TABLE DEPT_COPY
+AS SELECT *
+FROM DEPARTMENT;
+
+SELECT *
+FROM DEPT_COPY;
+
+UPDATE DEPT_COPY
+SET DEPT_TITLE = '전략기회팀'; -- 총무부
+
+ROLLBACK;
+
+-- D9 부서명을 '전략기획팀'으로 수정
+UPDATE DEPT_COPY
+SET DEPT_TITLE = '전략기회팀' -- 총무부
+WHERE DEPT_ID = 'D9';
+
+-- 우선 복사본 떠서 진행
+CREATE TABLE EMP_SALARY
+AS SELECT EMP_ID, EMP_NAME, DEPT_CODE, SALARY, BONUS
+FROM EMPLOYEE;
+
+SELECT *
+FROM EMP_SALARY;
+
+-- 노옹철 사원의 급여를 100만원으로 변경
+UPDATE EMP_SALARY
+SET SALARY = 1000000 -- 3700000
+WHERE EMP_NAME = '노옹철';
+
+-- 선동일 사원의 급여를 700만원으로 변경하고, 보너스도 0.2로 변경
+UPDATE EMP_SALARY
+SET SALARY = 7000000, -- 8000000
+    BONUS = 0.2 -- 0.3
+WHERE EMP_NAME = '선동일';
+
+-- 전체 사원의 급여를 기존의 급여의 10프로 인상한 금액 (기존금액 * 1.1)
+UPDATE EMP_SALARY
+SET SALARY = SALARY * 1.1;
+
+-- * UPDATE시 서브쿼리 사용 가능
+/*
+    UPDATE 테이블명
+    SET 컬럼명 = (서브쿼리)
+    WHERE 조건;
+*/
+
+-- 방명수 사원의 급여, 보너스 값을 유재식 사원의 급여와 보너스 값으로 변경
+SELECT *
+FROM EMP_SALARY
+WHERE EMP_NAME = '방명수'; 
+
+-- 단일행 서브쿼리
+UPDATE EMP_SALARY
+SET SALARY = (SELECT SALARY FROM EMP_SALARY WHERE EMP_NAME = '유재식'), -- 1518000
+    BONUS = (SELECT BONUS FROM EMP_SALARY WHERE EMP_NAME = '유재식') -- NULL
+WHERE EMP_NAME = '방명수';
+
+-- 다중열 서브쿼리
+UPDATE EMP_SALARY
+SET (SALARY, BONUS) = (SELECT SALARY, BONUS FROM EMP_SALARY WHERE EMP_NAME = '유재식')
+WHERE EMP_NAME = '방명수';
+
+-- ASIA 지역에서 근무하는 사원들의 보너스 값을 0.3으로 변경
+-- ASIA 지역에서 근무하는 사원들 조회
+SELECT *
+FROM EMP_SALARY
+JOIN DEPARTMENT ON (DEPT_CODE = DEPT_ID)
+JOIN LOCATION ON (LOCAL_CODE = LOCATION_ID)
+WHERE LOCAL_NAME LIKE '%ASIA%';
+
+UPDATE EMP_SALARY
+SET BONUS = 0.3
+WHERE EMP_NAME IN (SELECT EMP_NAME
+                     FROM EMP_SALARY
+                     JOIN DEPARTMENT ON (DEPT_CODE = DEPT_ID)
+                     JOIN LOCATION ON (LOCAL_CODE = LOCATION_ID)
+                    WHERE LOCAL_NAME LIKE '%ASIA%');
+
+SELECT *
+FROM EMP_SALARY;
+
+--------------------------------------------------------------------------------
+-- UPDATE 시에도 해당 컬럼에 대한 제약조건 위배하면 안됨!!
+-- 사번이 200번인 사원의 이름을 NULL로 변경하겠다 => NOT NULL 조건이 걸려있어서 안됨!!
+
+SELECT *
+FROM EMPLOYEE;
+
+UPDATE EMPLOYEE
+SET EMP_NAME = NULL -- 선동일
+WHERE EMP_ID = 200;
+-- ORA-01407: cannot update ("KH"."EMPLOYEE"."EMP_NAME") to NULL
+-- NOT NULL 제약조건 위배!!
+
+-- 노옹철 사원의 직급코드를 J9로 변경 => Foreign_Key 조건이 걸려있어서 안됨!!
+UPDATE EMPLOYEE
+SET JOB_CODE = 'J9'
+WHERE EMP_NAME = '노옹철';
+-- ORA-02291: integrity constraint (KH.SYS_C007172) violated - parent key not found
+-- FOREIGN KEY 제약조건 위배!!
+
+--------------------------------------------------------------------------------
+/*
+    4. DELETE
+       테이블에 기록된 데이터를 삭제하는 구문 (한 행 단위로 삭제)
+       
+       [ 표현식 ]
+       DELETE FROM 테이블명
+       [WHERE 조건]; -- > 생략하면 전체행의 모든 행의 데이터가 삭제된다 => 그래서 꼭 조건 기술해야됨
+*/
+
+-- 차은우 사원의 데이터 지우기
+SELECT *
+FROM EMPLOYEE
+WHERE EMP_NAME = '주지훈';
+
+DELETE FROM EMPLOYEE
+WHERE EMP_NAME = '차은우';
+
+ROLLBACK;
+
+DELETE FROM EMPLOYEE
+WHERE EMP_NAME = '주지훈';
+
+-- DEPT_ID가 D1인 부서를 삭제
+SELECT *
+FROM DEPARTMENT
+WHERE DEPT_ID = 'D1';
+
+DELETE FROM DEPARTMENT
+WHERE DEPT_ID = 'D1';
+-- ORA-02292: integrity constraint (KH.SYS_C007171) violated - child record found
+-- 외래키 제약 조건 위반!!
+-- D1의 값을 가져다 쓰는 자식 데이터가 있기 때문에 삭제 안됨!!
+
+SELECT *
+FROM EMPLOYEE
+WHERE DEPT_CODE = 'D1';
+
+DELETE FROM DEPARTMENT
+WHERE DEPT_ID = 'D3'; -- 마케팅부
+-- D3의 값을 가져다 쓰는 자식 데이터가 없어서 삭제됨
+
+ROLLBACK;
+
+-- * TRUNCATE : 테이블의 전체 행을 삭제할 때 사용되는 구문
+--              DELETE 보다 수행속도가 빠름
+--              별도의 조건 제시 불가, ROLLBACK 불가하다
+-- [표현식] TRUNCATE TABLE 테이블명;
+
+SELECT *
+FROM EMPLOYEE_COPY3;
+
+TRUNCATE TABLE EMPLOYEE_COPY3;
+
+ROLLBACK;
 

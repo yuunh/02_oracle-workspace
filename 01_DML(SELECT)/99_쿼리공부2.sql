@@ -61,5 +61,14 @@ SELECT TO_CHAR(TO_DATE('210908'), 'YYYY"년" FMMM"월" DD"일"')
 FROM DUAL;
 -- FM !!
 
+SELECT EMP_NAME, SALARY,
 
+        CASE WHEN SALARY >= 5000000 THEN '고급개발자'
 
+                   WHEN SALARY >= 3000000 THEN '중급개발자'
+
+                   ELSE '초급개발자'
+
+        END
+
+FROM EMPLOYEE;

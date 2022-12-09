@@ -16,7 +16,7 @@ WHERE ROWNUM = 1;
 
 -- 5. 저작 형태가 “옮김”에 해당하는 작가들이 총 몇 명인지 계산하는 SQL 구문을 작성하시오. 
 -- (결과 헤더는 “작가(명)”으로 표시되도록 할 것)
-SELECT COUNT(*) AS "작가(명)"
+SELECT COUNT(DISTINCT WRITER_NO) AS "작가(명)"
 FROM TB_BOOK_AUTHOR
 WHERE COMPOSE_TYPE LIKE '%옮김%';
 
@@ -111,7 +111,7 @@ WHERE REGIST_DATE IS  NOT NULL;
 SELECT BOOK_NM, PRICE, 
 CASE WHEN STOCK_QTY < 5 THEN '추가주문필요' ELSE '소량보유' END AS "재고상태"
 FROM TB_BOOK
-WHERE PUBLISHER_NM = '황금가지'
+WHERE PUBLISHER_NM = '황금가지' AND STOCK_QTY < 10
 ORDER BY STOCK_QTY DESC, BOOK_NM;
 
 -- 20. '아타트롤' 도서 작가와 역자를 표시하는 SQL 구문을 작성하시오. (결과 헤더는 ‘도서명’,’저자’,’역자’로 표시할 것)

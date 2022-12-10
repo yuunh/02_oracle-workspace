@@ -22,7 +22,10 @@ WHERE COMPOSE_TYPE LIKE '%옮김%';
 
 -- 6. 300권 이상 등록된 도서의 저작 형태 및 등록된 도서 수량을 표시하는 SQL 구문을 작성하시오.
 -- (저작 형태가 등록되지 않은 경우는 제외할 것)
-
+SELECT COMPOSE_TYPE, COUNT(*)
+FROM TB_BOOK_AUTHOR
+GROUP BY COMPOSE_TYPE
+HAVING COUNT(*) >= 300 AND COMPOSE_TYPE IS NOT NULL;
 
 -- 7. 가장 최근에 발간된 최신작 이름과 발행일자, 출판사 이름을 표시하는 SQL 구문을 작성하시오.
 SELECT BOOK_NM, ISSUE_DATE, PUBLISHER_NM
@@ -33,13 +36,27 @@ WHERE ROWNUM = 1;
 
 -- 8. 가장 많은 책을 쓴 작가 3명의 이름과 수량을 표시하되, 많이 쓴 순서대로 표시하는 SQL 구문을 작성하시오.
 -- 단, 동명이인(同名異人) 작가는 없다고 가정한다. (결과 헤더는 “작가 이름”, “권 수”로 표시되도록 할것)
-
+SELECT *
+FROM (SELECT WRITER_NM AS "작가 이름", COUNT(*) AS "권 수"
+        FROM TB_WRITER TW, TB_BOOK_AUTHOR TBA
+        WHERE TW.WRITER_NO = TBA.WRITER_NO
+        GROUP BY WRITER_NM
+        ORDER BY 2 DESC) W
+WHERE ROWNUM <= 3; 
 
 -- 9. 작가 정보 테이블의 모든 등록일자 항목이 누락되어 있는 걸 발견하였다. 
 -- 누락된 등록일자 값을 각 작가의 ‘최초 출판도서의 발행일과 동일한 날짜’로 변경시키는 SQL 구문을 작성하시오. (COMMIT 처리할 것)
 UPDATE TB_WRITER
-SET REGIST_DATE = 
-
+SET REGIST_DATE = (SELECT MIN(ISSUE_DATE)
+                    FROM TB_BOOK 
+                    JOIN TB_BOOK_AUTHOR USING (BOOK_NO)
+                    WHERE 
+                    
+UPDATE TB_WRITER A --1
+SET    REGIST_DATE = (SELECT MIN(ISSUE_DATE) --4 SET 하는거 5번
+                       FROM   TB_BOOK_AUTHOR  --2
+                       JOIN   TB_BOOK USING (BOOK_NO)
+                       WHERE  A.WRITER_NO = WRITER_NO);  --3
 -- 10. 현재 도서저자 정보 테이블은 저서와 번역서를 구분 없이 관리하고 있다. 앞으로는 번역서는 따로 관리하려고 한다. 
 -- 제시된 내용에 맞게 “TB_BOOK_ TRANSLATOR” 테이블을 생성하는 SQL 구문을 작성하시오. 
 -- (Primary Key 제약 조건 이름은 “PK_BOOK_TRANSLATOR”로 하고, 
@@ -55,14 +72,37 @@ CREATE TABLE TB_BOOK_TRANSLATOR(
 -- 도서 저자 정보 테이블에서 도서 역자 정보 테이블(TB_BOOK_ TRANSLATOR)로 옮기는 SQL 구문을 작성하시오. 
 -- 단, “TRANS_LANG” 컬럼은 NULL 상태로 두도록 한다. 
 -- (이동된 데이터는 더 이상 TB_BOOK_AUTHOR 테이블에 남아 있지 않도록 삭제할 것)
+INSERT INTO TB_BOOK_TRANSLATOR (BOOK_NO, WRITER_NO)
+(SELECT BOOK_NO, WRITER_NO
+    FROM TB_BOOK_AUTHOR
+    WHERE COMPOSE_TYPE IN ('옮김', '역주', '편역', '공역')
+);
 
+DELETE FROM TB_BOOK_AUTHOR
+WHERE COMPOSE_TYPE IN ('옮김', '역주', '편역', '공역');
 
 -- 12. 2007년도에 출판된 번역서 이름과 번역자(역자)를 표시하는 SQL 구문을 작성하시오.
-
+SELECT TB.BOOK_NM, TW.WRITER_NM, TB.ISSUE_DATE
+FROM TB_BOOK TB
+JOIN TB_BOOK_TRANSLATOR TBT ON (TB.BOOK_NO = TBT.BOOK_NO)
+JOIN TB_WRITER TW ON (TBT.WRITER_NO = TW.WRITER_NO)
+WHERE TO_CHAR(TO_DATE(SUBSTR(TB.ISSUE_DATE, 1, 2), 'RRRR'), 'YYYY') = '2007'
+ORDER BY 1;
 
 -- 13. 12번 결과를 활용하여 대상 번역서들의 출판일을 변경할 수 없도록 하는 뷰를 생성하는 SQL 구문을 작성하시오. 
 -- (뷰 이름은 “VW_BOOK_TRANSLATOR”로 하고 도서명, 번역자, 출판일이 표시되도록 할 것)
+CREATE OR REPLACE FORCE VIEW VW_BOOK_TRANSLATOR
+AS SELECT TB.BOOK_NM, TW.WRITER_NM, TB.ISSUE_DATE
+    FROM TB_BOOK TB
+    JOIN TB_BOOK_TRANSLATOR TBT ON (TB.BOOK_NO = TBT.BOOK_NO)
+    JOIN TB_WRITER TW ON (TBT.WRITER_NO = TW.WRITER_NO)
+    WHERE TO_CHAR(TO_DATE(SUBSTR(TB.ISSUE_DATE, 1, 2), 'RRRR'), 'YYYY') = '2007'
+    ORDER BY 1
+WITH READ ONLY;
 
+SELECT *
+FROM VW_BOOK_TRANSLATOR;
+GRANT CREATE VIEW TO FINAL;
 
 -- 14. 새로운 출판사(춘 출판사)와 거래 계약을 맺게 되었다. 
 -- 제시된 다음 정보를 입력하는 SQL 구문을 작성하시오.(COMMIT 처리할 것)

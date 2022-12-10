@@ -50,13 +50,13 @@ UPDATE TB_WRITER
 SET REGIST_DATE = (SELECT MIN(ISSUE_DATE)
                     FROM TB_BOOK 
                     JOIN TB_BOOK_AUTHOR USING (BOOK_NO)
-                    WHERE 
+                    WHERE ;
                     
 UPDATE TB_WRITER A --1
 SET    REGIST_DATE = (SELECT MIN(ISSUE_DATE) --4 SET 하는거 5번
                        FROM   TB_BOOK_AUTHOR  --2
                        JOIN   TB_BOOK USING (BOOK_NO)
-                       WHERE  A.WRITER_NO = WRITER_NO);  --3
+                       WHERE  A.WRITER_NO = WRITER_NO;  --3
 -- 10. 현재 도서저자 정보 테이블은 저서와 번역서를 구분 없이 관리하고 있다. 앞으로는 번역서는 따로 관리하려고 한다. 
 -- 제시된 내용에 맞게 “TB_BOOK_ TRANSLATOR” 테이블을 생성하는 SQL 구문을 작성하시오. 
 -- (Primary Key 제약 조건 이름은 “PK_BOOK_TRANSLATOR”로 하고, 
@@ -82,12 +82,11 @@ DELETE FROM TB_BOOK_AUTHOR
 WHERE COMPOSE_TYPE IN ('옮김', '역주', '편역', '공역');
 
 -- 12. 2007년도에 출판된 번역서 이름과 번역자(역자)를 표시하는 SQL 구문을 작성하시오.
-SELECT TB.BOOK_NM, TW.WRITER_NM, TB.ISSUE_DATE
+SELECT TB.BOOK_NM, TW.WRITER_NM
 FROM TB_BOOK TB
 JOIN TB_BOOK_TRANSLATOR TBT ON (TB.BOOK_NO = TBT.BOOK_NO)
 JOIN TB_WRITER TW ON (TBT.WRITER_NO = TW.WRITER_NO)
-WHERE TO_CHAR(TO_DATE(SUBSTR(TB.ISSUE_DATE, 1, 2), 'RRRR'), 'YYYY') = '2007'
-ORDER BY 1;
+WHERE TO_CHAR(TO_DATE(SUBSTR(TB.ISSUE_DATE, 1, 2), 'RRRR'), 'YYYY') = '2007';
 
 -- 13. 12번 결과를 활용하여 대상 번역서들의 출판일을 변경할 수 없도록 하는 뷰를 생성하는 SQL 구문을 작성하시오. 
 -- (뷰 이름은 “VW_BOOK_TRANSLATOR”로 하고 도서명, 번역자, 출판일이 표시되도록 할 것)
@@ -100,8 +99,6 @@ AS SELECT TB.BOOK_NM, TW.WRITER_NM, TB.ISSUE_DATE
     ORDER BY 1
 WITH READ ONLY;
 
-SELECT *
-FROM VW_BOOK_TRANSLATOR;
 GRANT CREATE VIEW TO FINAL;
 
 -- 14. 새로운 출판사(춘 출판사)와 거래 계약을 맺게 되었다. 
@@ -128,21 +125,14 @@ COMMIT;
 -- 작가의 이름과 사무실 전화 번호를 표시하는 SQL 구문을 작성하시오.
 SELECT WRITER_NM, OFFICE_TELNO
 FROM TB_WRITER
-WHERE OFFICE_TELNO LIKE '02%' 
-AND SUBSTR(OFFICE_TELNO, 4) LIKE '___$_%' ESCAPE '$';
-SUBSTR(EMAIL, 1, INSTR(EMAIL, '@') - 1)
-SELECT SUBSTR(OFFICE_TELNO, 4,INSTR(EMAIL, '-') -1) LIKE '___$_%' ESCAPE '$'
-FROM TB_WRITER;
+WHERE OFFICE_TELNO LIKE '02-___-%'
+ORDER BY 1;
 
 -- 18. 2006년 1월 기준으로 등록된 지 31년 이상 된 작가 이름을 이름순으로 표시하는 SQL 구문을 작성하시오.
 SELECT WRITER_NM
 FROM TB_WRITER
-WHERE EXTRACT(YEAR FROM REGIST_DATE) - EXTRACT(YEAR FROM TO_DATE('060101')) >= 31
+WHERE MONTHS_BETWEEN(TO_DATE('060101', 'RRMMDD'), REGIST_DATE) >= 372
 ORDER BY 1;
-
-SELECT *
-FROM TB_WRITER
-WHERE REGIST_DATE IS  NOT NULL;
 
 -- 19. 요즘 들어 다시금 인기를 얻고 있는 '황금가지' 출판사를 위한 기획전을 열려고 한다. 
 -- '황금가지'  출판사에서 발행한 도서 중 재고 수량이 10권 미만인 도서명과 가격, 재고상태를 표시하는 SQL 구문을 작성하시오. 
@@ -155,7 +145,22 @@ WHERE PUBLISHER_NM = '황금가지' AND STOCK_QTY < 10
 ORDER BY STOCK_QTY DESC, BOOK_NM;
 
 -- 20. '아타트롤' 도서 작가와 역자를 표시하는 SQL 구문을 작성하시오. (결과 헤더는 ‘도서명’,’저자’,’역자’로 표시할 것)
+SELECT BOOK_NM AS "도서명", TW.WRITER_NM AS "저자", TR.WRITER_NM AS "역자"
+FROM TB_BOOK TB
+JOIN TB_BOOK_AUTHOR TBA ON (TB.BOOK_NO = TBA.BOOK_NO)
+JOIN TB_BOOK_TRANSLATOR TBT ON (TBA.BOOK_NO = TBT.BOOK_NO)
+JOIN TB_WRITER TW ON (TBA.WRITER_NO = TW.WRITER_NO)
+JOIN TB_WRITER TR ON (TBT.WRITER_NO = TR.WRITER_NO)
+WHERE BOOK_NM = '아타트롤';
 
+SELECT 
+    BOOK_NM AS "도서명" -- TB_BOOK
+    , (SELECT TW.WRITER_NM FROM TB_WRITER TW WHERE TW.WRITER_NO = A.WRITER_NO) AS "저자"
+    , (SELECT TW.WRITER_NM FROM TB_WRITER TW WHERE TW.WRITER_NO = B.WRITER_NO) AS "역자"   
+FROM TB_BOOK_AUTHOR A
+JOIN TB_BOOK_TRANSLATOR B ON A.BOOK_NO = B.BOOK_NO 
+JOIN TB_BOOK C ON A.BOOK_NO = C.BOOK_NO
+WHERE C.BOOK_NM = '아타트롤';
 
 -- 21. 현재 기준으로 최초 발행일로부터 만 30년이 경과되고, 재고 수량이 90권 이상인 도서에 대해 
 -- 도서명, 재고 수량, 원래 가격, 20% 인하 가격을 표시하는 SQL 구문을 작성하시오. 
@@ -164,5 +169,11 @@ ORDER BY STOCK_QTY DESC, BOOK_NM;
 SELECT BOOK_NM AS "도서명", STOCK_QTY AS "재고 수량", PRICE AS "가격(Org)", PRICE * 80 / 100 AS "가격(New)"
 FROM TB_BOOK
 WHERE EXTRACT(YEAR FROM SYSDATE) - EXTRACT(YEAR FROM ISSUE_DATE) > 30
+AND STOCK_QTY >= 90
+ORDER BY 2 DESC, 4 DESC, 1;
+
+SELECT BOOK_NM AS "도서명", STOCK_QTY AS "재고 수량", PRICE AS "가격(Org)", PRICE * 80 / 100 AS "가격(New)"
+FROM TB_BOOK
+WHERE MONTHS_BETWEEN(SYSDATE, ISSUE_DATE) >= 360
 AND STOCK_QTY >= 90
 ORDER BY 2 DESC, 4 DESC, 1;

@@ -201,13 +201,18 @@ FROM DUAL;
 SELECT TO_CHAR(SYSDATE, 'YYYY-MM-DD DAY AM HH:MI:SS')
 FROM DUAL;
 
+----------------------------------------------------------------------------------------------
+SELECT EMP_NAME AS 이름, SALARY * 12 "연봉(원)", (SALARY + (SALARY * BONUS)) * 12 AS "총 소득(원)"
+FROM EMPLOYEE;
 
+SELECT EMP_ID, SALARY, '원' AS 단위
+FROM EMPLOYEE;
 
+SELECT EMP_ID || EMP_NAME || SALARY
+FROM EMPLOYEE;
 
-
-
-
-
+SELECT EMP_NAME || '의 월급은 ' || SALARY || '원입니다.'
+FROM EMPLOYEE;
 
 
 

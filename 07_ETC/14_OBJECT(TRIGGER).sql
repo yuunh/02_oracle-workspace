@@ -181,3 +181,193 @@ VALUES(SEQ_DCODE.NEXTVAL, 210, SYSDATE, 7, '출고');
 -- 200번 상품이 오늘 날짜로 100개 입고
 INSERT INTO TB_PRODETAIL
 VALUES(SEQ_DCODE.NEXTVAL, 200, SYSDATE, 100, '입고');
+
+--------------------------------------------------------------------------------
+-- 학생 테이블 생성
+-- TB_STU
+-- 컬럼 : 학번, 이름, 성별(M,F), 전화번호, 퇴졸여부(디폴트 재학, 퇴학, 졸업, 휴학, 재학 데이터)
+-- STU_NO, STU_NAME, GENDER, PHONE, STU_STATUS
+CREATE TABLE TB_STU(
+    STU_NO NUMBER PRIMARY KEY,
+    STU_NAME VARCHAR2(20) NOT NULL,
+    GENDER CHAR(3) CHECK(GENDER IN ('F', 'M')),
+    PHONE VARCHAR2(20),
+    STU_STATUS CHAR(6) DEFAULT '재학',
+    CHECK(STU_STATUS IN ('휴학', '졸업', '재학', '퇴학'))
+);
+
+-- 학번시퀀스 생성(SEQ_STU_NO)
+-- 900번부터 시작하게 (900,901)
+CREATE SEQUENCE SEQ_STU_NO
+START WITH 900
+INCREMENT BY 1
+NOCACHE;
+
+-- 데이터 5개 만들기
+INSERT INTO TB_STU VALUES(SEQ_STU_NO.NEXTVAL, '안유진', 'F', '010-0309-0147', DEFAULT);
+INSERT INTO TB_STU VALUES(SEQ_STU_NO.NEXTVAL, '장원영', 'F', '010-8031-4012', DEFAULT);
+INSERT INTO TB_STU VALUES(SEQ_STU_NO.NEXTVAL, '차은우', 'M', '010-1833-7427', DEFAULT);
+INSERT INTO TB_STU VALUES(SEQ_STU_NO.NEXTVAL, '박은빈', 'F', '010-6323-0930', DEFAULT);
+INSERT INTO TB_STU VALUES(SEQ_STU_NO.NEXTVAL, '박보검', 'M', '010-9939-6166', DEFAULT);
+
+-- 휴학 테이블 생성
+-- TB_ABSENCE
+-- 컬럼 : 휴학번호, 학번(외래키), 휴학일자, 휴학여부(CHECK Y N) => DEFAULT Y
+-- ABS_NO, STU_NO, ABS_DATE, ABS_STATUS
+CREATE TABLE TB_ABSENCE(
+    ABS_NO NUMBER PRIMARY KEY,
+    STU_NO NUMBER REFERENCES TB_STU,
+    ABS_DATE DATE,
+    ABS_STATUS CHAR(6) DEFAULT 'Y'
+);
+
+-- 휴학 시퀀스 생성(SEQ_ABS_NO)
+-- 1번부터 시작하게
+CREATE SEQUENCE SEQ_ABS_NO
+NOCACHE;
+
+-- 학생이 휴학할 경우에 => 학생테이블의 퇴졸여부가 휴학인 경우  
+-- 휴학 테이블에 INSERT 시키기
+-- 학생테이블의 퇴졸여부가 졸업이 되는 경우
+-- 해당데이터를 DELETE 처리(휴학에도 있으면 휴학도 딜리트) 한다.
+CREATE OR REPLACE TRIGGER TRG_STU_01
+AFTER UPDATE ON TB_STU
+FOR EACH ROW
+BEGIN
+    IF (:NEW.STU_STATUS = '휴학')
+        THEN
+            INSERT INTO TB_ABSENCE
+            VALUES(SEQ_ABS_NO.NEXTVAL, :NEW.STU_NO, SYSDATE, DEFAULT);
+    END IF; 
+
+    IF (:NEW.STU_STATUS = '졸업')
+        THEN
+            DELETE FROM TB_STU
+            WHERE STU_NO = :OLD.STU_NO;
+    END IF;
+ END;
+/   
+
+-- 휴학 테이블에 휴학여부가 N으로 바뀌는경우
+CREATE OR REPLACE TRIGGER TRG_STU_02
+AFTER UPDATE ON TB_ABSENCE
+FOR EACH ROW
+BEGIN
+    IF (:NEW.ABS_STATUS = 'N')
+        THEN
+            UPDATE TB_STU
+            SET STU_STATUS = '재학'
+            WHERE STU_NO = :NEW.STU_NO;
+    END IF; 
+ END;
+/ 
+
+--------------------------------------------------------------------------------
+
+DROP TABLE TB_STU;
+DROP TABLE TB_ABSENCE;
+
+-- 학생테이블 생성
+CREATE TABLE TB_STU(
+    STU_NO NUMBER PRIMARY KEY,
+    STU_NAME VARCHAR2(20),
+    GENDER CHAR(1) CHECK(GENDER IN ('M', 'F')),
+    PHONE VARCHAR2(15),
+    STU_STATUS CHAR(6) DEFAULT '재학'
+    CHECK(STU_STATUS IN ('휴학','졸업','재학', '퇴학'))
+);
+
+-- 학번 시퀀스 생성
+CREATE SEQUENCE SEQ_STU_NO
+START WITH 900
+NOCACHE;
+
+-- 휴학 테이블 생성
+CREATE TABLE TB_ABSENCE(
+    ABS_NO NUMBER PRIMARY KEY,
+    STU_NO NUMBER REFERENCES TB_STU ON DELETE CASCADE,
+    ABS_DATE DATE,
+    ABS_STATUS CHAR(1) DEFAULT 'Y' 
+    CHECK (ABS_STATUS IN ('Y', 'N'))
+);
+
+CREATE SEQUENCE SEQ_ABS_NO
+NOCACHE;
+
+SELECT * FROM TB_STU;
+SELECT * FROM TB_ABSENCE;
+
+INSERT INTO TB_STU
+VALUES(SEQ_STU_NO.NEXTVAL, '김시연', 'F', '010-2646-7652', DEFAULT);
+INSERT INTO TB_STU
+VALUES(SEQ_STU_NO.NEXTVAL, '한수빈', 'F', '010-1234-5678', DEFAULT);
+INSERT INTO TB_STU
+VALUES(SEQ_STU_NO.NEXTVAL, '최영재', 'M', '010-9999-1116', DEFAULT);
+INSERT INTO TB_STU
+VALUES(SEQ_STU_NO.NEXTVAL, '김수진', 'M', '010-8524-6478', DEFAULT);
+INSERT INTO TB_STU
+VALUES(SEQ_STU_NO.NEXTVAL, '박소영', 'F', '010-2368-9713', DEFAULT);
+INSERT INTO TB_STU
+VALUES(SEQ_STU_NO.NEXTVAL, '김동현', 'M', '010-2368-9713', DEFAULT);
+
+COMMIT;
+
+CREATE OR REPLACE TRIGGER TRG_STU_01
+AFTER UPDATE ON TB_STU
+FOR EACH ROW
+BEGIN
+    -- 휴학으로 변경됐을경우
+    IF (:NEW.STU_STATUS = '휴학')
+        THEN
+            INSERT INTO TB_ABSENCE 
+            VALUES(SEQ_ABS_NO.NEXTVAL, :NEW.STU_NO, SYSDATE, 'Y'); 
+            --COMMIT;
+    END IF;
+      IF (:NEW.STU_STATUS = '졸업')
+        THEN
+            DBMS_OUTPUT.PUT_LINE('이거탄다');
+    END IF;
+END;
+/
+
+
+-- 휴학 테이블에 휴학여부가 N으로 바뀌는경우
+-- 학생테이블의 퇴졸여부 재학으로 변경
+CREATE OR REPLACE TRIGGER TRG_STU_02
+AFTER UPDATE ON TB_ABSENCE
+FOR EACH ROW
+BEGIN
+    -- 휴학여부가 N으로 변경되는경우
+    IF (:NEW.ABS_STATUS = 'N')
+        THEN
+            UPDATE TB_STU
+            SET STU_STATUS = '재학'
+            WHERE STU_NO = :NEW.STU_NO;
+    END IF;
+END;
+/
+
+
+
+
+-- 학생이 휴학할 경우에 => 학생테이블의 퇴졸여부가 휴학인 경우  
+-- 휴학 테이블에 INSERT 시키기
+UPDATE TB_STU
+SET STU_STATUS = '휴학'
+WHERE STU_NAME = '김동현';
+
+UPDATE TB_STU
+SET STU_STATUS = '휴학'
+WHERE STU_NAME = '김수진';
+
+
+-- 휴학 테이블에 휴학여부가 N으로 바뀌는경우
+-- 학생테이블의 퇴졸여부 재학으로 변경
+UPDATE TB_ABSENCE
+SET ABS_STATUS = 'N'
+WHERE STU_NO = 905;
+
+
+
+SET SERVEROUTPUT ON;
+

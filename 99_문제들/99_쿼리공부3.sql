@@ -47,3 +47,41 @@ JOIN TB_JOB ON (JOBNO = JOBCODE);
 -- DCL ?
 
 -- COMMIT / ROLLBACK
+
+---------- QUIZ3 ----------
+-- JOIN
+
+-- 아래의 SQL구문은 부서별 월급 합계가 15,000,000을 초과하는 부서를 조회한 것이다
+-- 그 결과가 올바르지 않다
+SELECT DEPT_CODE, SUM(SALARY)
+FROM EMPLOYEE
+WHERE SALARY > 15000000
+GROUP BY DEPT_CODE;
+
+SELECT DEPT_CODE, SUM(SALARY)
+FROM EMPLOYEE
+GROUP BY DEPT_CODE
+HAVING SUM(SALARY) > 15000000;
+
+---------- QUIZ4 ----------
+-- 제약 조건
+CREATE TABLE QUIZ4(
+    QNO NUMBER PRIMARY KEY,
+    QNAME VARCHAR2(10),
+    SCORE NUMBER
+);
+
+INSERT INTO QUIZ4 VALUES (1, '퀴즈1번', 30);
+INSERT INTO QUIZ4 VALUES (1, '퀴즈2번', 50);
+INSERT INTO QUIZ4 VALUES (NULL, '퀴즈1번', 30);
+
+-- JOIN => DECODE
+-- J7인 사원은 급여를 10% 인상
+-- J6인 사원은 급여를 15% 인상
+
+-- '21/09/28' 문자열 => '2021-09-28'
+-- '210908' => 2021년 9월 8일
+
+-- CASE WHEN
+-- 초급개발자 중급개발자 고급개발자
+

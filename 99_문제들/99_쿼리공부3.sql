@@ -78,10 +78,39 @@ INSERT INTO QUIZ4 VALUES (NULL, '퀴즈1번', 30);
 -- JOIN => DECODE
 -- J7인 사원은 급여를 10% 인상
 -- J6인 사원은 급여를 15% 인상
+DECODE(SUBSTR(EMP_NO, 8, 1), '1', '남', '2', '여')
 
+SELECT EMP_NAME, JOB_CODE, SALARY,
+DECODE(JOB_CODE, 'J7', SALARY * 1.1,
+                 'J6', SALARY * 1.15,
+                 'J5', SALARY * 1.2,
+                       SALARY * 1.05)
+FROM EMPLOYEE;                                             
 -- '21/09/28' 문자열 => '2021-09-28'
 -- '210908' => 2021년 9월 8일
 
 -- CASE WHEN
 -- 초급개발자 중급개발자 고급개발자
+SELECT EMP_NAME, SALARY,
+        CASE WHEN SALARY >= 5000000 THEN '고급개발자'
+             WHEN SALARY >= 3000000 THEN '중급개발자'
+             ELSE '초급개발자'
+        END
+FROM EMPLOYEE;
 
+--------------------------------------------------------------------------------
+
+SELECT DEPT_CODE, JOB_CODE, SALARY
+FROM EMPLOYEE
+GROUP BY DEPT_CODE;
+
+SELECT DEPT_CODE, JOB_CODE
+FROM EMPLOYEE
+GROUP BY DEPT_CODE, JOB_CODE;
+
+SELECT DEPT_CODE, JOB_CODE, SUM(SALARY)
+FROM EMPLOYEE
+GROUP BY DEPT_CODE, JOB_CODE;
+-- SELECT 문에 있는 모든 열은 집계 함수가 되거나 GROUP BY 절에 나타나야 합니다.
+
+--------------------------------------------------------------------------------

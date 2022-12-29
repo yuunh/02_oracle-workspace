@@ -159,6 +159,8 @@ FROM DUAL; -- 'KH'
 SELECT RTRIM('5782KH123', '0123456789')
 FROM DUAL; -- '5782KH'
 
+SELECT EMP_NAME, LTRIM(PHONE, '010'), RTRIM(EMAIL, '@kh.or.kr')
+FROM EMPLOYEE;
 /*
     * TRIM
     문자열의 앞 / 뒤 / 양쪽에 있는 지정한 문자들을 제거한 나머지 문자열 반환
@@ -173,10 +175,10 @@ FROM DUAL; -- 'K H'
 SELECT TRIM('Z' FROM 'ZZZKHZZZ')
 FROM DUAL; -- 'KH'
 
-SELECT TRIM(LEADING 'Z' FROM 'ZZZKHZZZ') -- LEADING : 앞 => LTIM과 유사
+SELECT TRIM(LEADING 'Z' FROM 'ZZZYHZZZ') -- LEADING : 앞 => LTIM과 유사
 FROM DUAL; -- 'KHZZZ'
 
-SELECT TRIM(TRAILING 'Z' FROM 'ZZZKHZZZ') -- TRAILING : 뒤 => RTIM과 유사
+SELECT TRIM(TRAILING 'Z' FROM 'ZZZYHZZZ') -- TRAILING : 뒤 => RTIM과 유사
 FROM DUAL; -- 'ZZZKH'
 
 SELECT TRIM(BOTH 'Z' FROM 'ZZZKHZZZ') -- TRAILING : 양쪽 => 생략시 기본값
@@ -233,6 +235,8 @@ FROM DUAL;
 SELECT EMP_NAME, EMAIL, REPLACE(EMAIL, 'kh.or.kr', 'gmail.com')
 FROM EMPLOYEE;
 
+SELECT REPLACE('서울시 강남구 역삼동', '역삼동', '삼성동')
+FROM DUAL;
 --------------------------------------------------------------------------------
 /*
     < 숫자 처리 함수 >
@@ -406,6 +410,11 @@ EXTRACT(DAY FROM HIRE_DATE) || '일' AS "입사일"
 FROM EMPLOYEE
 ORDER BY "입사년도", "입사월", "입사일";
 
+SELECT  
+EXTRACT(YEAR FROM HIRE_DATE) || '년' AS "입사년도", 
+EXTRACT(MONTH FROM HIRE_DATE) || '월' AS "입사월", 
+EXTRACT(DAY FROM HIRE_DATE) || '일' AS "입사일"
+FROM EMPLOYEE;
 ----------------------------------------------------------------------------------
 /*
     < 형변환 함수 >
@@ -611,6 +620,12 @@ EMP_ID, EMP_NAME, EMP_NO, SUBSTR(EMP_NO, 8, 1),
 DECODE(SUBSTR(EMP_NO, 8, 1), '1', '남', '2', '여') AS "성별"
 FROM EMPLOYEE;
 
+
+SELECT EMP_NAME, EMP_NO, SUBSTR(EMP_NO, 8, 1),
+DECODE(SUBSTR(EMP_NO, 8, 1), '1', '남', '2', '여') AS "성별"
+FROM EMPLOYEE;
+
+
 -- 직원의 급여 조회시 각 직급별로 인상해서 조회
 -- J7인 사원은 급여를 10% 인상 (SALARY * 1.1)
 -- J6인 사원은 급여를 15% 인상 (SALARY * 1.15)
@@ -635,9 +650,9 @@ FROM EMPLOYEE;
 */
 
 SELECT EMP_NAME, SALARY,
-    CASE WHEN SALARY >= 5000000 THEN '고급개발자'
-         WHEN SALARY >= 3500000 THEN '중급개발자'
-         ELSE '초급개발자'
+    CASE WHEN SALARY >= 5000000 THEN '고급'
+         WHEN SALARY >= 3500000 THEN '중급'
+         ELSE '초급'
     END AS "레벨"
 FROM EMPLOYEE;
 
@@ -664,6 +679,9 @@ WHERE DEPT_CODE = 'D5';
 SELECT ROUND(AVG(SALARY)) || '원' AS "평균 급여"
 FROM EMPLOYEE;
 
+SELECT ROUND(AVG(NVL(BONUS, 0)), 2)
+FROM EMPLOYEE;
+
 -- 3. MIN(여러타입컬럼) : 해당 컬럼값들 중에 가장 작은 값 구해서 반환해주는 함수
 
 SELECT MIN(EMP_NAME), MIN(SALARY), MIN(HIRE_DATE)
@@ -672,6 +690,13 @@ FROM EMPLOYEE;
 -- 4. MAX(여러타입컬럼) : 해당 컬럼값들 중에 가장 큰 값 구해서 반환해주는 함수
 
 SELECT MAX(EMP_NAME), MAX(SALARY), MAX(HIRE_DATE)
+FROM EMPLOYEE;
+
+
+SELECT MAX(SALARY), MIN(SALARY)
+FROM EMPLOYEE;
+
+SELECT MAX(HIRE_DATE), MIN(HIRE_DATE)
 FROM EMPLOYEE;
 
 -- 5. COUNT(*|컬럼|DISTINCT 컬럼) : 조회된 행 개수를 세서 반환해주는 함수

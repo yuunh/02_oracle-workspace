@@ -47,7 +47,7 @@ GROUP BY DEPT_CODE
 ORDER BY 1;
 
 -- GROUP BY 절에 함수식 기술 가능!!
-SELECT DECODE(SUBSTR(EMP_NO, 8, 1), '1', '남', '2', '여'), COUNT(*)
+SELECT DECODE(SUBSTR(EMP_NO, 8, 1), '1', '남', '2', '여') AS "성별", COUNT(*)
 FROM EMPLOYEE
 GROUP BY SUBSTR(EMP_NO, 8, 1);
 

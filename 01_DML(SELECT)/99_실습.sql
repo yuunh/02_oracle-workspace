@@ -20,7 +20,7 @@ FROM EMPLOYEE;
 
 --6. EMPLOYEE테이블에서 이름, 연봉, 총수령액(보너스포함), 실수령액(총수령액 - (연봉*세금 3%)) 조회
 SELECT EMP_NAME, SALARY * 12 , SALARY *12, 
-       ((SALARY + NVL(BONUS, 0) * SALARY) * 12), (((SALARY + NVL(BONUS, 0) * SALARY) * 12) - (SALARY *12 * 0.3))
+       ((SALARY + NVL(BONUS, 0) * SALARY) * 12) AS "총수령액", (((SALARY + NVL(BONUS, 0) * SALARY) * 12) - (SALARY *12 * 0.3)) AS "실수령액"
 FROM EMPLOYEE;
 
 --7. EMPLOYEE테이블에서 SAL_LEVEL이 S1인 사원의 이름, 월급, 고용일, 연락처 조회
@@ -29,7 +29,7 @@ FROM EMPLOYEE
 WHERE SAL_LEVEL = 'S1';
 
 --8. EMPLOYEE테이블에서 실수령액(6번 참고)이 5천만원 이상인 사원의 이름, 월급, 실수령액, 고용일 조회
-SELECT EMP_NAME, SALARY, (((SALARY + NVL(BONUS, 0) * SALARY) * 12) - (SALARY *12 * 0.3)), HIRE_DATE
+SELECT EMP_NAME, SALARY, (((SALARY + NVL(BONUS, 0) * SALARY) * 12) - (SALARY *12 * 0.3)) AS "실수령액", HIRE_DATE
 FROM EMPLOYEE
 WHERE (((SALARY + NVL(BONUS, 0) * SALARY) * 12) - (SALARY *12 * 0.3)) >= 50000000;
 
@@ -41,7 +41,8 @@ WHERE SALARY >= 4000000 AND JOB_CODE = 'J2';
 --10. EMPLOYEE테이블에 DEPT_CODE가 D9이거나 D5인 사원 중 고용일이 02년 1월 1일보다 빠른 사원의 이름, 부서코드, 고용일 조회
 SELECT EMP_NAME, DEPT_CODE, HIRE_DATE
 FROM EMPLOYEE
-WHERE DEPT_CODE IN ('D9', 'D5'); AND HIRE_DATE > 02/01/01;
+WHERE DEPT_CODE IN ('D9', 'D5')
+AND HIRE_DATE <= '02/01/01';
 
 --11. EMPLOYEE테이블에 고용일이 90/01/01 ~ 01/01/01인 사원의 전체 내용을 조회
 SELECT *
@@ -93,7 +94,7 @@ FROM EMPLOYEE;
 
 --21. EMPLOYEE테이블에서 직원 명, 부서코드, 생년월일, 나이(만) 조회 (단, 생년월일은 주민번호에서 추출해서 00년 00월 00일로 출력되게 하며 나이는 주민번호에서 출력해서 날짜데이터로 변환한 다음 계산)
 SELECT EMP_NAME, DEPT_CODE, SUBSTR(EMP_NO, 1, 2) || '년 ' || SUBSTR(EMP_NO, 3, 2) || '월 ' || SUBSTR(EMP_NO, 5, 2) || '일' AS "생년월일",
-       EXTRACT(YEAR FROM SYSDATE) - EXTRACT(YEAR FROM TO_DATE(SUBSTR(EMP_NO, 1, 6), 'RRMMDD')) AS "만나이"    
+       EXTRACT(YEAR FROM SYSDATE) - TO_NUMBER(SUBSTR(EMP_NO, 1, 2) + 1900) AS "만나이"
 FROM EMPLOYEE;
 
 --22. EMPLOYEE테이블에서 부서코드가 D5, D6, D9인 사원만 조회하되 D5면 총무부, D6면 기획부, D9면 영업부로 처리 (단, 부서코드 오름차순으로 정렬)
@@ -101,12 +102,12 @@ SELECT EMP_NAME, CASE WHEN DEPT_CODE = 'D5' THEN '총무부'
                       WHEN DEPT_CODE = 'D6' THEN '기획부'
                       WHEN DEPT_CODE = 'D9' THEN '영업부'
                  END
-FROM EMPLOYEE22
+FROM EMPLOYEE
 WHERE DEPT_CODE IN ('D5', 'D6', 'D9')
 ORDER BY DEPT_CODE;
 
 --23. EMPLOYEE테이블에서 사번이 201번인 사원명, 주민번호 앞자리, 주민번호 뒷자리, 주민번호 앞자리와 뒷자리의 합 조회
-SELECT EMP_NAME, SUBSTR(EMP_NO, 1, 6), SUBSTR(EMP_NO, 8, 7), SUBSTR(EMP_NO, 1, 6) + SUBSTR(EMP_NO, 8, 7)
+SELECT EMP_NAME, SUBSTR(EMP_NO, 1, 6), SUBSTR(EMP_NO, 8, 7), SUBSTR(EMP_NO, 1, 6) + SUBSTR(EMP_NO, 8, 7) AS "합"
 FROM EMPLOYEE
 WHERE EMP_ID = '201';
 

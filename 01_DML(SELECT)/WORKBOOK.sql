@@ -98,10 +98,10 @@ FROM DUAL;
 
 -- 7. TO_DATE('99/10/11','YY/MM/DD'), TO_DATE('49/10/11','YY/MM/DD') 은 각각 몇 년 몇 월 몇 일을 의미할까? 
 --    또 TO_DATE('99/10/11','RR/MM/DD'), TO_DATE('49/10/11','RR/MM/DD') 은 각각 몇 년 몇 월 몇 일을 의미할까?
-SELECT TO_CHAR(TO_DATE('99/10/11','YY/MM/DD'), 'YYYY"년" MM"월" DD"일"'),
-       TO_CHAR(TO_DATE('49/10/11','YY/MM/DD'), 'YYYY"년" MM"월" DD"일"'),
-       TO_CHAR(TO_DATE('99/10/11','RR/MM/DD'), 'YYYY"년" MM"월" DD"일"'),
-       TO_CHAR(TO_DATE('49/10/11','RR/MM/DD'), 'YYYY"년" MM"월" DD"일"')
+SELECT TO_CHAR(TO_DATE('99/10/11','YY/MM/DD'), 'YYYY"년" MM"월" DD"일"') AS "2099",
+       TO_CHAR(TO_DATE('49/10/11','YY/MM/DD'), 'YYYY"년" MM"월" DD"일"') AS "2049",
+       TO_CHAR(TO_DATE('99/10/11','RR/MM/DD'), 'YYYY"년" MM"월" DD"일"') AS "1999",
+       TO_CHAR(TO_DATE('49/10/11','RR/MM/DD'), 'YYYY"년" MM"월" DD"일"') AS "2049"
 FROM DUAL;
 
 -- 8. 춘 기술대학교의 2000 년도 이후 입학자들은 학번이 A 로 시작하게 되어있다. 
